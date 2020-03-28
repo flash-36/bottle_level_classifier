@@ -17,13 +17,13 @@ class DataLoader():
 
         for image_file in os.listdir(self.test_path):
             PILimage = Image.open(os.path.join(self.test_path, image_file))
-            PILimage.thumbnail(self.size)
+            # PILimage.thumbnail(self.size)
             X_test.append(np.array(PILimage))
 
         for class_name in os.listdir(self.train_path):
             for image_file in os.listdir(os.path.join(self.train_path, class_name)):
                 PILimage = Image.open(os.path.join(self.train_path, class_name, image_file))
-                PILimage.thumbnail(self.size)
+                # PILimage.thumbnail(self.size)
                 image = np.array(PILimage)
                 X_train.append(image / 256 - 0.5)
                 y_train.append(int(class_name))
@@ -40,14 +40,14 @@ class DataLoader():
 
 if __name__ == '__main__':
     dataloader = DataLoader(
-        os.path.join("C:/Users/ujwal/Studies/NN_DL Research/bottle-challenge-e6040-2020/modified_kaggle_HW2"))
+        os.path.join("./modified_kaggle_HW2"))
     X_train, y_train, X_test = dataloader.load(True)
     print(X_train.shape, y_train.shape, X_test.shape)
     import matplotlib.pyplot as plt
 
     num = int(input())
     while num:
-        plt.imshow(X_train[num - 1])
+        plt.imshow(X_train.transpose(0,2,3,1)[num - 1])
         plt.title(str(y_train[num - 1]))
         plt.show()
         num = int(input())
