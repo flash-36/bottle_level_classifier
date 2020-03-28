@@ -7,7 +7,7 @@ from Model import Net
 from DataLoader import DataLoader
 from sklearn.model_selection import train_test_split
 
-PATH = os.path.join("./../bottle-challenge-e6040-2020/modified_kaggle_HW2")
+PATH = os.path.join("./modified_kaggle_HW2")
 
 net = Net()
 
