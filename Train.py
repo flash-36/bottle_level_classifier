@@ -1,4 +1,5 @@
 import os
+import csv
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -12,7 +13,7 @@ net = Net()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 data_gen = DataLoader(PATH)
-X_train_load, y_train_load, X_test = data_gen.load()
+X_train_load, y_train_load, X_test = data_gen.load(preprocess=True)
 
 
 def batch_feeder(X_train, y_train, batch_size):
@@ -25,8 +26,8 @@ def batch_feeder(X_train, y_train, batch_size):
 
 
 # Hyper params
-batch_size = 4
-num_epochs = 2
+batch_size = 100
+num_epochs = 10
 
 X_train, X_val, y_train, y_val = train_test_split(X_train_load, y_train_load, test_size=0.3)
 for epoch in range(num_epochs):  # loop over the dataset multiple times
@@ -44,21 +45,23 @@ for epoch in range(num_epochs):  # loop over the dataset multiple times
 
         # forward + backward + optimize
         outputs = net(inputs)
+        # print("ip",inputs.shape,"op",outputs.shape,"gt",labels.shape)
+
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
 
         # print statistics
         running_loss += loss.item()
-        if i % 2000 == 1999:  # print every 2000 mini-batches
+        if i % 100 == 99:  # print every 2000 mini-batches
             print('[%d, %5d] loss: %.3f' %
                   (epoch + 1, i + 1, running_loss / 2000))
             running_loss = 0.0
-        i+=1
+        i += 1
 
 print('Finished Training')
 
-SAVE_PATH = './cifar_net.pth'
+SAVE_PATH = './prototype_net'
 torch.save(net.state_dict(), SAVE_PATH)
 
 correct = 0
@@ -73,5 +76,23 @@ with torch.no_grad():
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
-print('Accuracy of the network on the 10000 test images: %d %%' % (
-    100 * correct / total))
+print('Accuracy of the network on validation images: %d %%' % (
+        100 * correct / total))
+
+test_images = torch.from_numpy(X_test).float()
+outputs = net(test_images)
+_, y_pred = torch.max(outputs.data, 1)
+
+
+def generate_csv(y_pred):
+    with open('predicted.csv', 'w') as csvfile:
+        fieldnames = ['Id', 'label']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for index, l in enumerate(y_pred):
+            filename = str(index).zfill(5) + '.png'
+            label = str(l)
+            writer.writerow({'Id': filename, 'label': label})
+
+
+generate_csv(y_pred.numpy())
